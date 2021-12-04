@@ -1,7 +1,7 @@
 open System
 
 let readLines filePath = System.IO.File.ReadLines(filePath)
-let lines = readLines (__SOURCE_DIRECTORY__ + "/day1_input.csv")
+let lines = readLines (__SOURCE_DIRECTORY__ + "/day1_input.txt")
 
 let numbers = lines |> Seq.map Int32.Parse
 
