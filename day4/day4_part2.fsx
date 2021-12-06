@@ -7,10 +7,19 @@ module Row =
         row
         |> Array.map (fun (n, c) -> if n = number then n, true else n, c)
 
-type Card = {
-    Rows: Row list
-    Numbers: Set<int>
-}
+[<CustomEquality;NoComparison>]
+type Card = 
+    {
+        ID: Guid
+        Rows: Row list
+        Numbers: Set<int>
+    }
+    override x.Equals(yobj) =  
+        match yobj with 
+        | :? Card as y -> 
+           y.ID = x.ID
+        | _ -> false 
+    override x.GetHashCode() = x.ID.GetHashCode()
 
 module Card =
     let create (rows: Row list) =
@@ -18,7 +27,7 @@ module Card =
             rows
             |> List.collect (Array.map fst >> List.ofArray)
             |> Set.ofList
-        { Rows = rows; Numbers = numbers }
+        { Rows = rows; Numbers = numbers; ID = Guid.NewGuid() }
 
     let checkNymber number (card: Card) =
         if not <| Set.contains number card.Numbers
@@ -66,17 +75,19 @@ let boards' =
             |> Array.map (fun i -> (int i,false))))
     |> List.map Card.create
 
-let rec playNumber numbers boards =
+let rec playNumber numbers boards sortedWinnners =
     match numbers with
     | [] -> failwith "BAD"
     | current :: next ->
-        let boards = boards |> List.map (Card.checkNymber current)
-        let winner = boards |> List.tryFind Card.isBingo
-        match winner with
-        | Some win -> win, current
-        | None -> playNumber next boards
+        let boards' = boards |> List.map (Card.checkNymber current)
+        let winners = boards' |> List.filter Card.isBingo
+        let sortedWinnners = winners |> List.except sortedWinnners |> List.append sortedWinnners
+        if sortedWinnners.Length = boards.Length then
+            List.last sortedWinnners, current
+        else
+            playNumber next boards' sortedWinnners
 
-let winner, current = playNumber numbers boards'
+let winner, current = playNumber numbers boards' []
 let winnerScore = Card.getScore winner
 
 printfn "%A" winner
