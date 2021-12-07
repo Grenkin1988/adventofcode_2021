@@ -12,10 +12,8 @@ let part1 =
 printfn "%A" part1
 
 let fuelTo from destination =
-    match abs(from - destination) with
-    | 0 -> 0
-    | 1 -> 1
-    | n -> [1..n] |> List.sum
+    let dest =  abs(from - destination)
+    dest * (dest + 1) / 2
 
 let part2 =
     [numbers |> List.min .. numbers |> List.max]
