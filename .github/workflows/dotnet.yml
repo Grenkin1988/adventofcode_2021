@@ -21,3 +21,5 @@ jobs:
       run: dotnet restore AdventOfCode2021/AdventOfCode2021.sln
     - name: Build
       run: dotnet build AdventOfCode2021/AdventOfCode2021.sln --no-restore
+    - name: Test
+      run: dotnet test AdventOfCode2021/AdventOfCode2021.sln --no-build --verbosity normal
