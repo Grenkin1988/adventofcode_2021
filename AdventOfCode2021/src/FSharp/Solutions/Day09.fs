@@ -1,15 +1,8 @@
-﻿open System
-let fileName = sprintf "%s/%s" __SOURCE_DIRECTORY__ "/day9_input.txt"
-let lines = Helpers.readLines fileName
+﻿[<NUnit.Framework.TestFixture>]
+module Solutions.Day09
 
-let matrix =
-    lines
-    |> List.map (fun line -> line.ToCharArray() |> Array.map (string >> int))
-    |> Array.ofList
-
-let withIndex = matrix |> Array.mapi (fun i a -> i, a |> Array.mapi(fun j n -> j,n))
-
-let windowed = withIndex |> Array.map (fun (_,a) -> a |> Array.windowed 3)
+open Solutions.Helpers
+open NUnit.Framework
 
 let findLowPoints index (full: (int)[][]) (row: (int*int)[][]) =
     let checkHorizontal length (i: int) (a: (int*int)[]) =
@@ -51,18 +44,6 @@ let findLowPoints index (full: (int)[][]) (row: (int*int)[][]) =
     horizontal
     |> Array.map checkVertical
     |> Array.choose id
-
-let check = 
-    windowed
-    |> Array.mapi (fun i a -> findLowPoints i matrix a)
-    |> Array.filter (Array.isEmpty >> not)
- 
-let sum =
-    check
-    |> Array.map (fun a -> a |> Array.map (fun (_,n) -> n + 1) |> Array.sum)
-    |> Array.sum
-
-printfn "%A" sum
 
 let findBasinPoints (full: (int)[][]) point =
     let checkPoint ((i,j),n) =
@@ -114,16 +95,59 @@ let findBasinPoints (full: (int)[][]) point =
 
     checkPoints [point] []
 
-let collected =
-    check
-    |> Array.collect id
+[<TestCase("day09_testinput.txt", ExpectedResult = 15)>]
+[<TestCase("day09_input.txt", ExpectedResult = 541)>]
+let ``Part 1``(fileName) =
+    let lines = readInput fileName
+    let matrix =
+        lines
+        |> List.map (fun line -> line.ToCharArray() |> Array.map (string >> int))
+        |> Array.ofList
+    
+    let withIndex = matrix |> Array.mapi (fun i a -> i, a |> Array.mapi(fun j n -> j,n))
+    
+    let windowed = withIndex |> Array.map (fun (_,a) -> a |> Array.windowed 3)
 
-let basins =
-    collected
-    |> Array.map (fun p -> findBasinPoints matrix p)
-    |> Array.sortByDescending List.length
+    let check = 
+        windowed
+        |> Array.mapi (fun i a -> findLowPoints i matrix a)
+        |> Array.filter (Array.isEmpty >> not)
+     
+    let sum =
+        check
+        |> Array.map (fun a -> a |> Array.map (fun (_,n) -> n + 1) |> Array.sum)
+        |> Array.sum
+    printfn "%A" sum
+    sum
 
-let result = basins |> Array.take 3 |> Array.map List.length |> Array.fold (*) 1
+[<TestCase("day09_testinput.txt", ExpectedResult = 1134)>]
+[<TestCase("day09_input.txt", ExpectedResult = 847504)>]
+let ``Part 2``(fileName) =
+    let lines = readInput fileName
 
-// For more information see https://aka.ms/fsharp-console-apps
-printfn "%A" result
+    let matrix =
+        lines
+        |> List.map (fun line -> line.ToCharArray() |> Array.map (string >> int))
+        |> Array.ofList
+    
+    let withIndex = matrix |> Array.mapi (fun i a -> i, a |> Array.mapi(fun j n -> j,n))
+    
+    let windowed = withIndex |> Array.map (fun (_,a) -> a |> Array.windowed 3)
+
+    let check = 
+        windowed
+        |> Array.mapi (fun i a -> findLowPoints i matrix a)
+        |> Array.filter (Array.isEmpty >> not)
+
+    let collected =
+        check
+        |> Array.collect id
+    
+    let basins =
+        collected
+        |> Array.map (fun p -> findBasinPoints matrix p)
+        |> Array.sortByDescending List.length
+    
+    let result = basins |> Array.take 3 |> Array.map List.length |> Array.fold (*) 1
+    printfn "%A" result
+    result
