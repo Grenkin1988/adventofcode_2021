@@ -106,10 +106,11 @@ module DumboOctopusesField =
 [<TestCase("day11_input.txt", ExpectedResult = 1620)>]
 let ``Part 1``(fileName) =
     let lines = readInput fileName
+
     let empty = Array2D.create lines.Length lines.Length 0
     let matrix =
         lines
-        |> List.map (fun line -> line.ToCharArray() |> Array.map (string >> int) |> Array.indexed)
+        |> List.map (fun line -> line |> Seq.map (fun c -> int c - int '0') |> Array.ofSeq |> Array.indexed)
         |> List.indexed
         |> List.fold (fun mat (i,line) -> 
             line 

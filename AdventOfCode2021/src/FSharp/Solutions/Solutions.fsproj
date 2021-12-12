@@ -12,10 +12,15 @@
     <Content Include="Input\day10_testinput.txt" />
     <Content Include="Input\day11_input.txt" />
     <Content Include="Input\day11_testinput.txt" />
+    <Content Include="Input\day12_input.txt" />
+    <Content Include="Input\day12_testinput_small.txt" />
+    <Content Include="Input\day12_testinput_medium.txt" />
+    <Content Include="Input\day12_testinput_big.txt" />
     <Compile Include="Helpers.fs" />
     <Compile Include="Day09.fs" />
     <Compile Include="Day10.fs" />
     <Compile Include="Day11.fs" />
+    <Compile Include="Day12.fs" />
   </ItemGroup>
 
   <ItemGroup>
