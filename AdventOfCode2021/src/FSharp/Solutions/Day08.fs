@@ -1,27 +1,11 @@
-﻿open System
-let fileName = sprintf "%s/%s" __SOURCE_DIRECTORY__ "/day8_input.txt"
-let lines = Helpers.readLines fileName
+﻿[<NUnit.Framework.TestFixture>]
+module Solutions.Day08
 
-let split = lines |> List. map (fun line -> line.Split("|", StringSplitOptions.TrimEntries))
+open Solutions.Helpers
+open NUnit.Framework
+open System
 
 let toDigits (line: string) = line.Split(" ", StringSplitOptions.TrimEntries) |> List.ofArray
-
-let afterPipe = 
-    split
-    |> List.map (fun line -> toDigits line.[1])
-
-let pipeSplit = 
-    split
-    |> List.map (fun line -> toDigits line.[0], toDigits line.[1])
-
-let distinct = [ 2; 4; 3; 7]
-
-let matches =
-    afterPipe
-    |> List.map (fun list -> list |> List.fold (fun n l -> if List.contains l.Length distinct then n + 1 else n) 0)
-    |> List.sum
-
-printfn "%A" matches
 
 type SevenSegmentDisplay =
     {
@@ -162,11 +146,40 @@ module SevenSegmentDisplay =
         digits 
         |> List.map (displayDigit display) |> String.concat ""
 
-let result =
-    pipeSplit
-    |> List.map (fun (b,a) -> SevenSegmentDisplay.defineDisply b, a)
-    |> List.map SevenSegmentDisplay.printDigit
-    |> List.map int
+[<TestCase("day08_testinput.txt", ExpectedResult = 26)>]
+[<TestCase("day08_input.txt", ExpectedResult = 349)>]
+let ``Part 1``(fileName) =
+    let lines = readInput fileName
+    let split = lines |> List. map (fun line -> line.Split("|", StringSplitOptions.TrimEntries))
 
-printfn "%A" result
-result |> List.sum |> printfn "%A"
+    let afterPipe = 
+        split
+        |> List.map (fun line -> toDigits line.[1])
+
+    let distinct = [ 2; 4; 3; 7]
+    
+    let matches =
+        afterPipe
+        |> List.map (fun list -> list |> List.fold (fun n l -> if List.contains l.Length distinct then n + 1 else n) 0)
+        |> List.sum
+    
+    matches
+
+[<TestCase("day08_testinput.txt", ExpectedResult = 61229)>]
+[<TestCase("day08_input.txt", ExpectedResult = 1070957)>]
+let ``Part 2``(fileName) =
+    let lines = readInput fileName
+    let split = lines |> List. map (fun line -> line.Split("|", StringSplitOptions.TrimEntries))
+
+    let pipeSplit = 
+        split
+        |> List.map (fun line -> toDigits line.[0], toDigits line.[1])
+
+    let result =
+        pipeSplit
+        |> List.map (fun (b,a) -> SevenSegmentDisplay.defineDisply b, a)
+        |> List.map SevenSegmentDisplay.printDigit
+        |> List.map int
+    
+    printfn "%A" result
+    result |> List.sum

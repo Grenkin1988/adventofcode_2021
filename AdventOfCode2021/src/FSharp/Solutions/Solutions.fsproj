@@ -6,6 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="Input\day07_input.txt" />
+    <Content Include="Input\day07_testinput.txt" />
+    <Content Include="Input\day08_input.txt" />
+    <Content Include="Input\day08_testinput.txt" />
     <Content Include="Input\day09_input.txt" />
     <Content Include="Input\day09_testinput.txt" />
     <Content Include="Input\day10_input.txt" />
@@ -17,6 +21,8 @@
     <Content Include="Input\day12_testinput_medium.txt" />
     <Content Include="Input\day12_testinput_big.txt" />
     <Compile Include="Helpers.fs" />
+    <Compile Include="Day07.fs" />
+    <Compile Include="Day08.fs" />
     <Compile Include="Day09.fs" />
     <Compile Include="Day10.fs" />
     <Compile Include="Day11.fs" />
