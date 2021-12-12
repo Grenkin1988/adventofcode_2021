@@ -1,6 +1,9 @@
-﻿open System
-let fileName = sprintf "%s/%s" __SOURCE_DIRECTORY__ "/day5_input.txt"
-let lines = Helpers.readLines fileName
+﻿[<NUnit.Framework.TestFixture>]
+module Solutions.Day05
+
+open Solutions.Helpers
+open NUnit.Framework
+open System
 
 type Matrix = int[,]
 
@@ -58,39 +61,54 @@ module Pipe =
         range
         |> List.fold (fun m (x,y) -> Matrix.fill x y m) matrix
 
-let pipes =
-    lines
-    |> List.map (fun line -> 
-        line.Split([|"->"; ","|], StringSplitOptions.TrimEntries)
-        |> Array.map int
-        |> (fun ar -> { X1 = ar.[0]; Y1 = ar.[1]; X2 = ar.[2]; Y2 = ar.[3] }))
+[<TestCase("day05_testinput.txt", ExpectedResult = 5)>]
+[<TestCase("day05_input.txt", ExpectedResult = 8111)>]
+let ``Part 1``(fileName) =
+    let lines = readInput fileName
+    
+    let pipes =
+        lines
+        |> List.map (fun line -> 
+            line.Split([|"->"; ","|], StringSplitOptions.TrimEntries)
+            |> Array.map int
+            |> (fun ar -> { X1 = ar.[0]; Y1 = ar.[1]; X2 = ar.[2]; Y2 = ar.[3] }))
+    
+    let pipesPart1 =
+        pipes
+        |> List.filter Pipe.isHorizontalOrVertical
+    
+    let maxX = pipesPart1 |> List.maxBy Pipe.maxX |> Pipe.maxX
+    let maxY = pipesPart1 |> List.maxBy Pipe.maxY |> Pipe.maxY
+    
+    let matrix =
+        pipesPart1 |> List.fold Pipe.draw (Array2D.zeroCreate (maxX + 1) (maxY + 1))
+    
+    let found = Matrix.find (fun i -> i > 1) matrix
+    
+    found
 
-let pipesPart1 =
-    pipes
-    |> List.filter Pipe.isHorizontalOrVertical
+[<TestCase("day05_testinput.txt", ExpectedResult = 12)>]
+[<TestCase("day05_input.txt", ExpectedResult = 22088)>]
+let ``Part 2``(fileName) =
+    let lines = readInput fileName
+    
+    let pipes =
+        lines
+        |> List.map (fun line -> 
+            line.Split([|"->"; ","|], StringSplitOptions.TrimEntries)
+            |> Array.map int
+            |> (fun ar -> { X1 = ar.[0]; Y1 = ar.[1]; X2 = ar.[2]; Y2 = ar.[3] }))
 
-let maxX = pipesPart1 |> List.maxBy Pipe.maxX |> Pipe.maxX
-let maxY = pipesPart1 |> List.maxBy Pipe.maxY |> Pipe.maxY
-
-let matrix =
-    pipesPart1 |> List.fold Pipe.draw (Array2D.zeroCreate (maxX + 1) (maxY + 1))
-
-let found = Matrix.find (fun i -> i > 1) matrix
-
-//printfn "%A" matrix
-printfn "%A" found
-
-let pipesPart2 =
-    pipes
-    |> List.filter Pipe.isValid
-
-let maxX' = pipesPart2 |> List.maxBy Pipe.maxX |> Pipe.maxX
-let maxY' = pipesPart2 |> List.maxBy Pipe.maxY |> Pipe.maxY
-
-let matrix' =
-    pipesPart2 |> List.fold Pipe.draw' (Array2D.zeroCreate (maxX' + 1) (maxY' + 1))
-
-let found' = Matrix.find (fun i -> i > 1) matrix'
-
-//printfn "%A" matrix'
-printfn "%A" found'
+    let pipesPart2 =
+        pipes
+        |> List.filter Pipe.isValid
+    
+    let maxX = pipesPart2 |> List.maxBy Pipe.maxX |> Pipe.maxX
+    let maxY = pipesPart2 |> List.maxBy Pipe.maxY |> Pipe.maxY
+    
+    let matrix =
+        pipesPart2 |> List.fold Pipe.draw' (Array2D.zeroCreate (maxX + 1) (maxY + 1))
+    
+    let found = Matrix.find (fun i -> i > 1) matrix
+    
+    found

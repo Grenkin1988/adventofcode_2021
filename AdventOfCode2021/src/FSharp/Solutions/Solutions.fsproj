@@ -6,6 +6,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="Input\day01_input.txt" />
+    <None Include="Input\day01_testinput.txt" />
+    <Content Include="Input\day02_input.txt" />
+    <Content Include="Input\day02_testinput.txt" />
+    <Content Include="Input\day03_input.txt" />
+    <Content Include="Input\day03_testinput.txt" />
+    <Content Include="Input\day04_input.txt" />
+    <Content Include="Input\day04_testinput.txt" />
+    <Content Include="Input\day05_input.txt" />
+    <Content Include="Input\day05_testinput.txt" />
+    <Content Include="Input\day06_input.txt" />
+    <Content Include="Input\day06_testinput.txt" />
     <Content Include="Input\day07_input.txt" />
     <Content Include="Input\day07_testinput.txt" />
     <Content Include="Input\day08_input.txt" />
@@ -21,6 +33,12 @@
     <Content Include="Input\day12_testinput_medium.txt" />
     <Content Include="Input\day12_testinput_big.txt" />
     <Compile Include="Helpers.fs" />
+    <Compile Include="Day01.fs" />
+    <Compile Include="Day02.fs" />
+    <Compile Include="Day03.fs" />
+    <Compile Include="Day04.fs" />
+    <Compile Include="Day05.fs" />
+    <Compile Include="Day06.fs" />
     <Compile Include="Day07.fs" />
     <Compile Include="Day08.fs" />
     <Compile Include="Day09.fs" />
@@ -29,14 +47,12 @@
     <Compile Include="Day12.fs" />
   </ItemGroup>
 
+  <ItemGroup />
+
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.0" />
     <PackageReference Include="NUnit" Version="3.12.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.17.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Helpers\Helpers.fsproj" />
   </ItemGroup>
 
 </Project>
