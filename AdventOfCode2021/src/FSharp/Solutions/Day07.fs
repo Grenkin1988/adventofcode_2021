@@ -9,7 +9,7 @@ open System
 [<TestCase("day07_input.txt", ExpectedResult = 333755)>]
 let ``Part 1``(fileName) =
     let lines = readInput fileName
-    let numbers = lines.Head.Split(",", StringSplitOptions.TrimEntries) |> Array.map int |> List.ofArray
+    let numbers = splitToInt "," [lines.Head] |> List.head
     
     let part1 =
         numbers
@@ -21,7 +21,7 @@ let ``Part 1``(fileName) =
 [<TestCase("day07_input.txt", ExpectedResult = 94017638)>]
 let ``Part 2``(fileName) =
     let lines = readInput fileName
-    let numbers = lines.Head.Split(",", StringSplitOptions.TrimEntries) |> Array.map int |> List.ofArray
+    let numbers = splitToInt "," [lines.Head] |> List.head
     let fuelTo from destination =
         let dest =  abs(from - destination)
         dest * (dest + 1) / 2

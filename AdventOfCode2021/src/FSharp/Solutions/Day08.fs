@@ -150,7 +150,7 @@ module SevenSegmentDisplay =
 [<TestCase("day08_input.txt", ExpectedResult = 349)>]
 let ``Part 1``(fileName) =
     let lines = readInput fileName
-    let split = lines |> List. map (fun line -> line.Split("|", StringSplitOptions.TrimEntries))
+    let split = lines |> List.map (fun line -> line.Split("|", StringSplitOptions.TrimEntries))
 
     let afterPipe = 
         split
@@ -169,7 +169,7 @@ let ``Part 1``(fileName) =
 [<TestCase("day08_input.txt", ExpectedResult = 1070957)>]
 let ``Part 2``(fileName) =
     let lines = readInput fileName
-    let split = lines |> List. map (fun line -> line.Split("|", StringSplitOptions.TrimEntries))
+    let split = lines |> List.map (fun line -> line.Split("|", StringSplitOptions.TrimEntries))
 
     let pipeSplit = 
         split

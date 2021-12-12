@@ -106,17 +106,7 @@ module DumboOctopusesField =
 [<TestCase("day11_input.txt", ExpectedResult = 1620)>]
 let ``Part 1``(fileName) =
     let lines = readInput fileName
-
-    let empty = Array2D.create lines.Length lines.Length 0
-    let matrix =
-        lines
-        |> List.map (fun line -> line |> Seq.map (fun c -> int c - int '0') |> Array.ofSeq |> Array.indexed)
-        |> List.indexed
-        |> List.fold (fun mat (i,line) -> 
-            line 
-            |> Array.fold (fun mat (j,v) -> 
-                Array2D.set mat i j v
-                mat) mat) empty
+    let matrix = matrix lines
     let length = matrix.[0,*].Length
     let octopuses =
         matrix
@@ -133,17 +123,7 @@ let ``Part 1``(fileName) =
 [<TestCase("day11_input.txt", ExpectedResult = 371)>]
 let ``Part 2``(fileName) =
     let lines = readInput fileName
-    let lines = readInput fileName
-    let empty = Array2D.create lines.Length lines.Length 0
-    let matrix =
-        lines
-        |> List.map (fun line -> line.ToCharArray() |> Array.map (string >> int) |> Array.indexed)
-        |> List.indexed
-        |> List.fold (fun mat (i,line) -> 
-            line 
-            |> Array.fold (fun mat (j,v) -> 
-                Array2D.set mat i j v
-                mat) mat) empty
+    let matrix = matrix lines
     let length = matrix.[0,*].Length
     let octopuses =
         matrix

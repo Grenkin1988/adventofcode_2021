@@ -69,16 +69,13 @@ module Card =
 [<TestCase("day04_input.txt", ExpectedResult = 14093)>]
 let ``Part 1``(fileName) =
     let lines = readInput fileName
-    let numbers = lines.Head.Split(",") |> Array.map int |> List.ofArray
+    let numbers = [lines.Head] |> splitToInt "," |> List.head
     
     let boards = lines.Tail |> List.filter (String.IsNullOrEmpty >> not) |> List.chunkBySize 5
     let boards = 
         boards 
         |> List.map (fun list ->
-            list 
-            |> List.map (fun line -> 
-                line.Split(" ", StringSplitOptions.RemoveEmptyEntries) 
-                |> Array.map (fun i -> (int i,false))))
+            list |> splitAndMap " " (fun i -> (int i,false)) |> List.map (fun l -> l |> Array.ofList ))
         |> List.map Card.create
     
     let rec playNumber numbers boards =
@@ -102,15 +99,12 @@ let ``Part 1``(fileName) =
 [<TestCase("day04_input.txt", ExpectedResult = 17388)>]
 let ``Part 2``(fileName) =
     let lines = readInput fileName
-    let numbers = lines.Head.Split(",") |> Array.map int |> List.ofArray
+    let numbers = [lines.Head] |> splitToInt "," |> List.head
     let boards = lines.Tail |> List.filter (String.IsNullOrEmpty >> not) |> List.chunkBySize 5
     let boards = 
         boards 
         |> List.map (fun list ->
-            list 
-            |> List.map (fun line -> 
-                line.Split(" ", StringSplitOptions.RemoveEmptyEntries) 
-                |> Array.map (fun i -> (int i,false))))
+            list |> splitAndMap " " (fun i -> (int i,false)) |> List.map (fun l -> l |> Array.ofList ))
         |> List.map Card.create
 
     let rec playNumber numbers boards sortedWinnners =

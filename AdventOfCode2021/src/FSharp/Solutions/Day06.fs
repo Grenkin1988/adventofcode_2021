@@ -7,9 +7,7 @@ open System
 
 let initial (lines: string list) =
     lines
-    |> List.map (fun line -> 
-        line.Split([| ","|], StringSplitOptions.TrimEntries)
-        |> Array.map int |> List.ofArray)
+    |> splitToInt ","
     |> List.head
     |> List.groupBy id
     |> List.map (fun (i,l) -> i, List.length l |> uint64)
