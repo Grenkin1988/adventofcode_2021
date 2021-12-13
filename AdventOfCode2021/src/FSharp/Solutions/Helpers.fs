@@ -22,6 +22,10 @@ let readInput fileName =
     let fileName = sprintf "%s/Input/%s" __SOURCE_DIRECTORY__ fileName
     readLines fileName
 
+let readExpected fileName = 
+    let fileName = sprintf "%s/Expected/%s" __SOURCE_DIRECTORY__ fileName
+    readLines fileName
+
 let matrix (lines: string list) =
     let empty = Array2D.create lines.Length lines.Length 0
     let matrix =
