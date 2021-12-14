@@ -36,6 +36,8 @@
     <Content Include="Input\day12_testinput_big.txt" />
     <Content Include="Input\day13_input.txt" />
     <Content Include="Input\day13_testinput.txt" />
+    <Content Include="Input\day14_input.txt" />
+    <Content Include="Input\day14_testinput.txt" />
     <Compile Include="Helpers.fs" />
     <Compile Include="Matrix.fs" />
     <Compile Include="Day01.fs" />
@@ -51,6 +53,7 @@
     <Compile Include="Day11.fs" />
     <Compile Include="Day12.fs" />
     <Compile Include="Day13.fs" />
+    <Compile Include="Day14.fs" />
   </ItemGroup>
 
   <ItemGroup>
