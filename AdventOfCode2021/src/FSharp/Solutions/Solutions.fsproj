@@ -6,8 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="Expected\*.txt" />
-    <Content Include="Input\*.txt" />
+    <Content Include="*\*.txt" />
     <Compile Include="Helpers.fs" />
     <Compile Include="Matrix.fs" />
     <Compile Include="Day01.fs" />
@@ -25,6 +24,7 @@
     <Compile Include="Day13.fs" />
     <Compile Include="Day14.fs" />
     <Compile Include="Day15.fs" />
+    <Compile Include="Day16.fs" />
   </ItemGroup>
 
   <ItemGroup>
