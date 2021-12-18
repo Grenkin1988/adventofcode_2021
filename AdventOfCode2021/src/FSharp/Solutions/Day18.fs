@@ -30,83 +30,14 @@ module SnailNumber =
                     r |> int |> Number, rest.Substring(sp + 1).TrimStart(']').TrimStart(',')
             Nested (left, right), rest
 
-    let rec addToLeft toAdd (number: SnailNumber) =
-        let tryAddToLeft toAdd (number: SnailNumber) =
-            match number with
-            | Nested(Number l, Nested(Number a, Number r)) when a = toAdd ->
-                Nested(Number(l + a), Nested(Number a, Number r)) |> Some
-            | _ -> None
-        match number with
-        | Number _ -> number
-        | Nested (l, r) ->
-            match tryAddToLeft toAdd r with
-            | Some r -> Nested(l, r)
-            | None -> 
-                let r = addToLeft toAdd r
-                Nested(l, r)
+    let tryGetNumbers (line: string) =
+        line.Split([|","; "]"; "["|], StringSplitOptions.TrimEntries)
+        |> Array.choose (fun n ->
+            match Int32.TryParse n with
+            | false, _ -> None
+            | true, n -> Some n)
 
-    let rec addToRight toAdd (number: SnailNumber) =
-        let tryAddToRight toAdd (number: SnailNumber) =
-            match number with
-            | Nested(Nested(Number l, Number a), Number r) when a = toAdd ->
-                Nested(Nested(Number l, Number a), Number (r+a)) |> Some
-            | _ -> None
-        match number with
-        | Number _ -> number
-        | Nested (l, r) ->
-            match tryAddToRight toAdd l with
-            | Some l -> Nested(l, r)
-            | None -> 
-                let l = addToRight toAdd l
-                Nested(l, r)
-
-    let tryExplode (number: SnailNumber) =
-        let rec tryExplode nesting (number: SnailNumber) (initial: SnailNumber) =
-            match number with
-            | Number _ -> None
-            | Nested(Number l, Number r) when nesting >= 4 ->
-                let rec explode (number: SnailNumber) =
-                    match number with
-                    | Number _ -> number
-                    | Nested(Number nl, Number nr) when nl = l && nr = r ->
-                        Number 0
-                    | Nested(l,r) ->
-                        Nested(explode l, explode r)
-
-                addToLeft l initial
-                |> addToRight r
-                |> explode
-                |> Some
-            | Nested (l,r) -> 
-                let nesting = nesting + 1
-                match tryExplode nesting l initial with
-                | Some n -> Some n
-                | None -> tryExplode nesting r initial
-        tryExplode 0 number number
-
-    let rec trySplit (number: SnailNumber) =
-        match number with
-        | Number n when n >= 10 ->
-            let l = n / 2
-            Nested(Number l, Number (n - l)) |> Some
-        | Number _ -> None
-        | Nested(l,r) ->
-            match trySplit l with
-            | Some l -> Nested(l, r) |> Some
-            | None ->
-                match trySplit r with
-                | Some r -> Nested(l, r) |> Some
-                | None -> None
-
-    let rec reduce (number: SnailNumber) =
-        match tryExplode number with
-        | Some n -> reduce n
-        | None ->
-            match trySplit number with
-            | Some n -> reduce n
-            | None -> number
-
-    let tryExplode2 (line: string) =
+    let tryExplode (line: string) =
         let rec findNested nested (line: string) =
             if line.Length < 1 then None
             else
@@ -115,7 +46,7 @@ module SnailNumber =
                 match c with
                 | '[' -> findNested (nested + 1) n
                 | ']' -> findNested (nested - 1) n
-                | _ when nested >= 5 ->
+                | n when Char.IsNumber n && nested >= 5 ->
                     let next = line.IndexOf("]")
                     let nums = line.Substring(0, next)
                     Some nums
@@ -132,21 +63,25 @@ module SnailNumber =
             let before = line.Substring(0, index - 1)
             let after = line.Substring(index + 1 + nested.Length)
             let addToLeft (line: string) =
-                match line |> Seq.tryFindIndexBack Char.IsDigit with
-                | Some index ->
-                    let num = line.[index] |> string |> int
+                match tryGetNumbers line with
+                | [||] -> line
+                | numbers ->
+                    let num = numbers |> Array.last
+                    let nums = num.ToString()
+                    let index = line.LastIndexOf(nums)
                     let before = line.Substring(0, index)
-                    let after = line.Substring(index+1)
+                    let after = line.Substring(index+nums.Length)
                     sprintf "%s%i%s" before (num + l) after
-                | None -> line
             let addToRight (line: string) =
-                match line |> Seq.tryFindIndex Char.IsDigit with
-                | Some index ->
-                    let num = line.[index] |> string |> int
+                match tryGetNumbers line with
+                | [||] -> line
+                | numbers ->
+                    let num = numbers.[0]
+                    let nums = num.ToString()
+                    let index = line.IndexOf(nums)
                     let before = line.Substring(0, index)
-                    let after = line.Substring(index+1)
+                    let after = line.Substring(index+nums.Length)
                     sprintf "%s%i%s" before (num + r) after
-                | None -> line
 
             let before = addToLeft before
             let after = addToRight after
@@ -154,58 +89,114 @@ module SnailNumber =
             sprintf "%s%i%s" before 0 after
             |> Some
 
-    let trySplit2 (line: string) =
+    let trySplit (line: string) =
         match line.Split([|","; "]"; "["|], StringSplitOptions.TrimEntries) |> Array.tryFind (fun s -> s.Length > 1) with
         | Some num ->
             let n = num |> int
             let l = n / 2
             let r = n - l
             let sp = sprintf "[%i,%i]" l r
-            line.Replace(num, sp) |> Some
+            let index = line.IndexOf(num)
+            let before = line.Substring(0, index)
+            let after = line.Substring(index+num.Length)
+            sprintf "%s%s%s" before sp after |> Some
         | None -> None
 
-    let rec reduce2 (line: string) =
-        match tryExplode2 line with
-        | Some n -> reduce2 n
+    let rec reduce (line: string) =
+        match tryExplode line with
+        | Some n -> reduce n
         | None ->
-            match trySplit2 line with
-            | Some n -> reduce2 n
+            match trySplit line with
+            | Some n -> reduce n
             | None -> line
 
-//[<TestCase("[[[[[9,8],1],2],3],4]", ExpectedResult = 54)>]
-//[<TestCase("[7,[6,[5,[4,[3,2]]]]]", ExpectedResult = 54)>]
-//[<TestCase("[[6,[5,[4,[3,2]]]],1]", ExpectedResult = 54)>]
-//[<TestCase("[[3,[2,[1,[7,3]]]],[6,[5,[4,[3,2]]]]]", ExpectedResult = 54)>]
-//[<TestCase("[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]", ExpectedResult = 54)>]
-[<TestCase("[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]", ExpectedResult = 3)>]
-[<TestCase("04005AC33890", ExpectedResult = 54)>]
-[<TestCase("880086C3E88112", ExpectedResult = 7)>]
-[<TestCase("CE00C43D881120", ExpectedResult = 9)>]
-[<TestCase("D8005AC2A8F0", ExpectedResult = 1)>]
-[<TestCase("F600BC2D8F", ExpectedResult = 0)>]
-[<TestCase("9C005AC2F8F0", ExpectedResult = 0)>]
-[<TestCase("9C0141080250320F1802104A08", ExpectedResult = 1)>]
-let ``Tests``(packet) =
+    let add (line1: string) (line2: string) =
+        match line1, line2 with
+        | "", "" -> ""
+        | "", l2 -> l2
+        | l1, "" -> l1
+        | _ -> sprintf "[%s,%s]" line1 line2
 
-    let n,s = SnailNumber.create packet
+    let magnitude (line: string) =
+        let number,_ = create line
+        let rec magnitude number =
+            match number with
+            | Number n -> n
+            | Nested(Number l, Number r) ->
+                3 * l + 2 * r
+            | Nested(l, r) ->
+                3 * (magnitude l) + (2 * magnitude r)
+        magnitude number
 
-    let uuu = SnailNumber.reduce2 packet
+[<TestCase("[[[[[9,8],1],2],3],4]", ExpectedResult = "[[[[0,9],2],3],4]")>]
+[<TestCase("[7,[6,[5,[4,[3,2]]]]]", ExpectedResult = "[7,[6,[5,[7,0]]]]")>]
+[<TestCase("[[6,[5,[4,[3,2]]]],1]", ExpectedResult = "[[6,[5,[7,0]]],3]")>]
+[<TestCase("[[3,[2,[1,[7,3]]]],[6,[5,[4,[3,2]]]]]", ExpectedResult = "[[3,[2,[8,0]]],[9,[5,[7,0]]]]")>]
+[<TestCase("[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]", ExpectedResult = "[[[[0,7],4],[[7,8],[6,0]]],[8,1]]")>]
+let ``Test 1``(packet) =
 
-    let rrrrrr = SnailNumber.tryExplode2 packet
+    SnailNumber.reduce packet
 
-    packet
+[<TestCase("[[[[4,3],4],4],[7,[[8,4],9]]]", "[1,1]", ExpectedResult = "[[[[0,7],4],[[7,8],[6,0]]],[8,1]]")>]
+[<TestCase("[[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]]", "[7,[[[3,7],[4,3]],[[6,3],[8,8]]]]", ExpectedResult = "[[[[4,0],[5,4]],[[7,7],[6,0]]],[[8,[7,7]],[[7,9],[5,0]]]]")>]
+[<TestCase("[[[[4,0],[5,4]],[[7,7],[6,0]]],[[8,[7,7]],[[7,9],[5,0]]]]", "[[2,[[0,8],[3,4]]],[[[6,7],1],[7,[1,6]]]]", ExpectedResult = "[[[[6,7],[6,7]],[[7,7],[0,7]]],[[[8,7],[7,7]],[[8,8],[8,0]]]]")>]
+[<TestCase("[[[[6,7],[6,7]],[[7,7],[0,7]]],[[[8,7],[7,7]],[[8,8],[8,0]]]]", "[[[[2,4],7],[6,[0,5]]],[[[6,8],[2,8]],[[2,1],[4,5]]]]", ExpectedResult = "[[[[7,0],[7,7]],[[7,7],[7,8]]],[[[7,7],[8,8]],[[7,7],[8,7]]]]")>]
+[<TestCase("[[[[7,0],[7,7]],[[7,7],[7,8]]],[[[7,7],[8,8]],[[7,7],[8,7]]]]", "[7,[5,[[3,8],[1,4]]]]", ExpectedResult = "[[[[7,7],[7,8]],[[9,5],[8,7]]],[[[6,8],[0,8]],[[9,9],[9,0]]]]")>]
+[<TestCase("[[[[7,7],[7,8]],[[9,5],[8,7]]],[[[6,8],[0,8]],[[9,9],[9,0]]]]", "[[2,[2,2]],[8,[8,1]]]", ExpectedResult = "[[[[6,6],[6,6]],[[6,0],[6,7]]],[[[7,7],[8,9]],[8,[8,1]]]]")>]
+[<TestCase("[[[[6,6],[6,6]],[[6,0],[6,7]]],[[[7,7],[8,9]],[8,[8,1]]]]", "[2,9]", ExpectedResult = "[[[[6,6],[7,7]],[[0,7],[7,7]]],[[[5,5],[5,6]],9]]")>]
+[<TestCase("[[[[6,6],[7,7]],[[0,7],[7,7]]],[[[5,5],[5,6]],9]]", "[1,[[[9,3],9],[[9,0],[0,7]]]]", ExpectedResult = "[[[[7,8],[6,7]],[[6,8],[0,8]]],[[[7,7],[5,0]],[[5,5],[5,6]]]]")>]
+[<TestCase("[[[[7,8],[6,7]],[[6,8],[0,8]]],[[[7,7],[5,0]],[[5,5],[5,6]]]]", "[[[5,[7,4]],7],1]", ExpectedResult = "[[[[7,7],[7,7]],[[8,7],[8,7]]],[[[7,0],[7,7]],9]]")>]
+[<TestCase("[[[[7,7],[7,7]],[[8,7],[8,7]]],[[[7,0],[7,7]],9]]", "[[[[4,2],2],6],[8,7]]", ExpectedResult = "[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]")>]
+let ``Test 2``(first, second) =
+    
+    let sum = SnailNumber.add first second
+    let result = SnailNumber.reduce sum
 
-[<TestCase("day18_testinput.txt", ExpectedResult = 4140)>]
-[<TestCase("day18_input.txt", ExpectedResult = 619)>]
+    result
+
+[<TestCase("[[1,2],[[3,4],5]]", ExpectedResult = 143)>]
+[<TestCase("[[[[0,7],4],[[7,8],[6,0]]],[8,1]]", ExpectedResult = 1384)>]
+[<TestCase("[[[[1,1],[2,2]],[3,3]],[4,4]]", ExpectedResult = 445)>]
+[<TestCase("[[[[3,0],[5,3]],[4,4]],[5,5]]", ExpectedResult = 791)>]
+[<TestCase("[[[[5,0],[7,4]],[5,5]],[6,6]]", ExpectedResult = 1137)>]
+[<TestCase("[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]", ExpectedResult = 3488)>]
+let ``Test 3``(packet) =
+
+    SnailNumber.magnitude packet
+
+[<TestCase("day18_tiny_test_1.txt", ExpectedResult = "[[[[1,1],[2,2]],[3,3]],[4,4]]")>]
+[<TestCase("day18_tiny_test_2.txt", ExpectedResult = "[[[[3,0],[5,3]],[4,4]],[5,5]]")>]
+[<TestCase("day18_tiny_test_3.txt", ExpectedResult = "[[[[5,0],[7,4]],[5,5]],[6,6]]")>]
+[<TestCase("day18_testinput_1.txt", ExpectedResult = "[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]")>]
+[<TestCase("day18_testinput_2.txt", ExpectedResult = "[[[[6,6],[7,6]],[[7,7],[7,0]]],[[[7,7],[7,7]],[[7,8],[9,9]]]]")>]
+let ``Test 4``(fileName) =
+    let lines = readInput fileName
+    
+    let folder prev next =
+        let sum = SnailNumber.add prev next
+        SnailNumber.reduce sum
+
+    let result = 
+        List.fold folder "" lines
+
+    result
+
+[<TestCase("day18_testinput_2.txt", ExpectedResult = 4140)>]
+//[<TestCase("day18_input.txt", ExpectedResult = 619)>]
 let ``Part 1``(fileName) =
     let lines = readInput fileName
     
+    let folder prev next =
+        let sum = SnailNumber.add prev next
+        SnailNumber.reduce sum
 
+    let result = 
+        List.fold folder "" lines
 
-    lines
+    SnailNumber.magnitude result
 
-[<TestCase("day18_testinput.txt", ExpectedResult = 40)>]
-[<TestCase("day18_input.txt", ExpectedResult = 619)>]
+//[<TestCase("day18_testinput.txt", ExpectedResult = 40)>]
+//[<TestCase("day18_input.txt", ExpectedResult = 619)>]
 let ``Part 2``(fileName) =
     let lines = readInput fileName
     
