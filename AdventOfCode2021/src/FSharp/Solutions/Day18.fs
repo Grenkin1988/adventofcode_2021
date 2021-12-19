@@ -38,77 +38,68 @@ module SnailNumber =
             | true, n -> Some n)
 
     let tryExplode (line: string) =
-        let rec findNested nested (line: string) =
-            if line.Length < 1 then None
-            else
-                let c = line.[0]
-                let n = line.Substring(1)
-                match c with
-                | '[' -> findNested (nested + 1) n
-                | ']' -> findNested (nested - 1) n
-                | n when Char.IsNumber n && nested >= 5 ->
-                    let next = line.IndexOf("]")
-                    let nums = line.Substring(0, next)
-                    Some nums
-                | _ ->
-                    let n1 = max (n.IndexOf("[")) 0
-                    let n2 = max (n.IndexOf("]")) 0
-                    findNested nested (n.Substring(min n1 n2))
-        match findNested 0 line with
-        | None -> None
-        | Some nested ->
-            let sp = nested.Split(",")
-            let l,r = sp.[0] |> int, sp.[1] |> int
-            let index = line.IndexOf(nested)
-            let before = line.Substring(0, index - 1)
-            let after = line.Substring(index + 1 + nested.Length)
-            let addToLeft (line: string) =
-                match tryGetNumbers line with
-                | [||] -> line
-                | numbers ->
-                    let num = numbers |> Array.last
-                    let nums = num.ToString()
-                    let index = line.LastIndexOf(nums)
-                    let before = line.Substring(0, index)
-                    let after = line.Substring(index+nums.Length)
-                    sprintf "%s%i%s" before (num + l) after
-            let addToRight (line: string) =
-                match tryGetNumbers line with
-                | [||] -> line
-                | numbers ->
-                    let num = numbers.[0]
-                    let nums = num.ToString()
-                    let index = line.IndexOf(nums)
-                    let before = line.Substring(0, index)
-                    let after = line.Substring(index+nums.Length)
-                    sprintf "%s%i%s" before (num + r) after
+        let rec internalExplode nesting chars index =
+            match chars with
+            | [] -> line
+            | '[' :: t -> internalExplode (nesting + 1) t (index + 1)
+            | ']' :: t -> internalExplode (nesting - 1) t (index + 1)
+            | n :: t when Char.IsNumber n && nesting >= 5 ->
+                let until = line.Substring(index).IndexOf(']') + index
+                let nums = line.Substring(index, until - index).Split(",")
+                let l,r = nums.[0] |> int, nums.[1] |> int
+                let addToLeft () =
+                    let before = line.Substring(0, index - 1)
+                    match tryGetNumbers before with
+                    | [||] -> before
+                    | nums ->
+                        let n = nums |> Array.last
+                        let ns = n |> string
+                        let ni = before.LastIndexOf(ns)
+                        let be = before.Substring(0, ni)
+                        let af = before.Substring(ni + ns.Length)
+                        sprintf "%s%i%s" be (n + l) af
+                let addToRight () =
+                    let after = line.Substring(until + 1)
+                    match tryGetNumbers after with
+                    | [||] -> after
+                    | nums ->
+                        let n = nums |> Array.head
+                        let ns = n |> string
+                        let ni = after.IndexOf(ns)
+                        let be = after.Substring(0, ni)
+                        let af = after.Substring(ni + ns.Length)
+                        sprintf "%s%i%s" be (n + r) af
 
-            let before = addToLeft before
-            let after = addToRight after
+                let left = addToLeft()
+                let right = addToRight()
 
-            sprintf "%s%i%s" before 0 after
-            |> Some
+                sprintf "%s0%s" left right
+            | c :: t -> internalExplode nesting t (index + 1)
+        internalExplode 0 (line.ToCharArray() |> List.ofArray) 0
 
     let trySplit (line: string) =
-        match line.Split([|","; "]"; "["|], StringSplitOptions.TrimEntries) |> Array.tryFind (fun s -> s.Length > 1) with
-        | Some num ->
-            let n = num |> int
-            let l = n / 2
-            let r = n - l
-            let sp = sprintf "[%i,%i]" l r
-            let index = line.IndexOf(num)
-            let before = line.Substring(0, index)
-            let after = line.Substring(index+num.Length)
-            sprintf "%s%s%s" before sp after |> Some
-        | None -> None
+        match tryGetNumbers line with
+        | [||] -> line
+        | nums ->
+            match Array.tryFind (fun n -> n > 9) nums with
+            | None -> line
+            | Some n ->
+                let ns = string n
+                let index = line.IndexOf(ns)
+                let be = line.Substring(0, index)
+                let af = line.Substring(index + ns.Length)
+                sprintf "%s[%i,%i]%s" be (n/2) (n-(n/2)) af
 
     let rec reduce (line: string) =
-        match tryExplode line with
-        | Some n -> reduce n
-        | None ->
-            match trySplit line with
-            | Some n -> reduce n
-            | None -> line
+        let after = tryExplode line
+        if after <> line then
+            reduce after
+        else
+            let after = trySplit line
+            if after <> line then
+                reduce after
+            else
+                line
 
     let add (line1: string) (line2: string) =
         match line1, line2 with
@@ -182,7 +173,7 @@ let ``Test 4``(fileName) =
     result
 
 [<TestCase("day18_testinput_2.txt", ExpectedResult = 4140)>]
-//[<TestCase("day18_input.txt", ExpectedResult = 619)>]
+[<TestCase("day18_input.txt", ExpectedResult = 3359)>]
 let ``Part 1``(fileName) =
     let lines = readInput fileName
     
