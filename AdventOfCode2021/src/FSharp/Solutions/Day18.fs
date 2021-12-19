@@ -186,11 +186,26 @@ let ``Part 1``(fileName) =
 
     SnailNumber.magnitude result
 
-//[<TestCase("day18_testinput.txt", ExpectedResult = 40)>]
-//[<TestCase("day18_input.txt", ExpectedResult = 619)>]
+let allPairs (arr: 'a[]) = Seq.choose id <| seq {
+        for i in 0..(arr.Length - 1) do
+            for j in 0..(arr.Length - 1) do
+                if i <> j 
+                then yield Some (arr.[i], arr.[j])
+                else yield None
+   }
+
+[<TestCase("day18_testinput_2.txt", ExpectedResult = 3993)>]
+[<TestCase("day18_input.txt", ExpectedResult = 4616)>]
 let ``Part 2``(fileName) =
-    let lines = readInput fileName
+    let lines = readInput fileName |> Array.ofList
     
+    let allPairs = lines |> allPairs
 
+    let magnitudes = 
+        allPairs 
+        |> Seq.map (fun (l,r) -> 
+            SnailNumber.add l r 
+            |> SnailNumber.reduce 
+            |> SnailNumber.magnitude)
 
-    lines
+    magnitudes |> Seq.max
