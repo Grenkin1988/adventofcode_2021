@@ -118,6 +118,23 @@ let ``Part 1``(fileName) =
         |> List.map (Instruction.create >> (Instruction.clamp range))
         |> List.choose id
 
+
+    let ux = 
+        lines |> List.collect (fun x -> seq { x.X1 .. x.X2} |> List.ofSeq) |> List.distinct |> List.sort
+
+    let uy = 
+        lines |> List.collect (fun x -> seq { x.Y1 .. x.Y2} |> List.ofSeq) |> List.distinct |> List.sort
+
+    let uz = 
+        lines |> List.collect (fun x -> seq { x.Z1 .. x.Z2} |> List.ofSeq) |> List.distinct |> List.sort
+
+    let g = Array.create uz.Length 0 |> Array.create uy.Length |> Array.create ux.Length
+
+    let mx = ux |> List.indexed |> List.map (fun (i,v) -> v,i) |> Map.ofList
+    let my = uy |> List.indexed |> List.map (fun (i,v) -> v,i) |> Map.ofList
+    let mz = uz |> List.indexed |> List.map (fun (i,v) -> v,i) |> Map.ofList
+
+
     let result = Collections.Generic.Dictionary<int*int*int, bool>()
     
     let update (ins:Instruction) = 
@@ -134,6 +151,38 @@ let ``Part 1``(fileName) =
 //[<TestCase("day22_testinput_3.txt", ExpectedResult = 2758514936282235L)>]
 //[<TestCase("day22_input.txt", ExpectedResult = 974)>]
 let ``Part 2``(fileName) =
+    let lines = 
+        readInput fileName 
+        |> List.map Instruction.create
+
+
+    let ux = 
+        lines |> List.collect (fun x -> seq { x.X1 .. x.X2} |> List.ofSeq) |> List.distinct |> List.sort
+
+    let uy = 
+        lines |> List.collect (fun x -> seq { x.Y1 .. x.Y2} |> List.ofSeq) |> List.distinct |> List.sort
+
+    let uz = 
+        lines |> List.collect (fun x -> seq { x.Z1 .. x.Z2} |> List.ofSeq) |> List.distinct |> List.sort
+
+    let g = Array.create uz.Length 0 |> Array.create uy.Length |> Array.create ux.Length
+
+    let mx = ux |> List.indexed |> List.map (fun (i,v) -> v,i) |> Map.ofList
+    let my = uy |> List.indexed |> List.map (fun (i,v) -> v,i) |> Map.ofList
+    let mz = uz |> List.indexed |> List.map (fun (i,v) -> v,i) |> Map.ofList
+
+    for c in lines do
+        for x in mx.[c.X1] .. mx.[c.X2 + 1] do
+            for y in my.[c.Y1] .. my.[c.Y2 + 1] do
+                for z in mz.[c.Z1] .. mz.[c.Z2 + 1] do
+                    if c.IsOn then g.[x].[y].[z] <- 1
+    let mutable ans = 0L
+
+    for x in 0 .. ux.Length - 1 do
+        for y in 0 .. uy.Length - 1 do
+            for z in 0 .. uz.Length - 1 do
+                ans <- ans + ((ux.[x+1] - ux[x]) |> int64) * ((uy.[y+1] - uy[y]) |> int64) * ((uz.[z+1] - uz[z]) |> int64)
+
     let lines = 
         readInput fileName 
         |> List.map Instruction.create2
